@@ -8,3 +8,4 @@ My aim is to:
 - translate it to Julia
 - optimize the code (vectorize the value function iterations)
 
+To run the code, execute the file main.m
