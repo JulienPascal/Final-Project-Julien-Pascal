@@ -7,4 +7,4 @@ For the moment, the code is not optimized (at all) and the value function iterat
 My aim is to:
 - translate it to Julia
 - optimize the code (vectorize the value function iterations)
-- 
+
