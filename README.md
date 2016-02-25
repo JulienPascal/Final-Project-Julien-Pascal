@@ -1,8 +1,15 @@
-# Final-Project-Julien-Pascal
+# Computational Economics
+## Final-Project-Julien-Pascal
 
-This repository contains a replication of the Paper from Jean Marc Robin (2011) "On the Dynamics of Unemployment and Wage Distribution" built from scratch. Originally, the code was for Matlab.
 
-The folder "Julia" contains a Julia version of it. To run the code, execute the file "main2.m" in the Julia folder. 
+This repository contains a replication of the Paper from Jean Marc Robin (2011) "On the Dynamics of Unemployment and Wage Distribution" built from scratch. Originally, I coded it for Matlab. The folder "Julia" contains a Julia version of it. To run the code, execute the file "main2.m" in the Julia folder. 
+
+## Main elements of the model:
+This is a search-and-matching model with heterogeneous agents that differ in their "ability". Firms are assumed to be identical. Search is random, and worker-firm pairs are formed only when the match surplus is positive. Productivity shocks occur according to a Markov process. Following a shock in productivity, worker-firm pairs with negative surplus are destroyed. On-the-job search is permitted, and firms can make counteroffers to retain their workers. 
+
+Wages are endogeneously determined according to a sequential auction model: unemployed workers are offered their reservation wage, while employed workers accepting an outside are offered receive all the match surplus. 
+
+Calibrated on the US labor market, the model is able to replicated fairly well the variation in unemployment and the volatitily in wages. It explains why low wages and high wages are more procycle than intermediate wages. 
 
 Update 1:
 - I have included a version that runs with Julia
