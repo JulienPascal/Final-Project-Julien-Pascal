@@ -12,6 +12,10 @@ Wages are endogeneously determined according to a sequential auction model: unem
 
 Calibrated on the US labor market, the model is able to replicated fairly well the variation in unemployment and the volatitily in wages. It explains why low wages and high wages are more procycle than intermediate wages. 
 
+## Stylized fact the U.S. Labor Market
+
+
+## Updates:
 Update 1:
 - I have included a version that runs with Julia
 - Run the file "main2.jl" that is in the folder "Julia"
