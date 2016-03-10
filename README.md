@@ -19,3 +19,10 @@ Update 1:
 
 Update 2, 21/02/2016:
 - I have included two files that perform the estimation of the parameters by the Simulated Method of Moments: "estim_params.jl" and "objective_function.jl". To estimate the parameters, run "estim_params.jl"
+
+Update 3, 10/03/2016:
+-Include two files in python in the folder "Data" that calculate interesting moments for the model:
+  - calculate_turnover_BLS.py HP filters the data and calculates the moments the model intends to match
+  - calculate_volatility_wages.py calculate the volatility of the wage deciles
+-The data necessary for the estimations is also in the folder "Data"
+
