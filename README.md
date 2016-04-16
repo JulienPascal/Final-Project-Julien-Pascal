@@ -1,7 +1,9 @@
 # Computational Economics
 ## Final-Project-Julien-Pascal
 
-This repository contains a replication of the Paper from Jean Marc Robin (2011) "On the Dynamics of Unemployment and Wage Distribution" Econometrica, 79: 1327–1355. doi: 10.3982/ECTA9070. http://onlinelibrary.wiley.com/doi/10.3982/ECTA9070/abstract. The structure of the code is presented below
+This repository contains a replication of the Paper from Jean Marc Robin (2011) "On the Dynamics of Unemployment and Wage Distribution" Econometrica, 79: 1327–1355. doi: 10.3982/ECTA9070. http://onlinelibrary.wiley.com/doi/10.3982/ECTA9070/abstract. The structure of the code is presented in the flow chart below:
+
+![myimage-alt-tag](https://github.com/JulianPasc/Final-Project-Julien-Pascal/blob/master/figures/Structure_code.png)
  
 
 ## Main elements of the model:
@@ -19,8 +21,7 @@ This section offers a visual presentation of the facts that the model aims at ex
 Source:Author's calculations based on data from The Bureau of Labor Statistics. Series LNS12000000 and LNS13000000
 
 ###Unemployment rate by educational attainment
-![myimage-alt-tag](https://github.com/JulianPasc/Final-Project-Julien-Pascal/blob/master/figures/Detrended_wage_deciles.png)
-
+![myimage-alt-tag](https://github.com/JulianPasc/Final-Project-Julien-Pascal/blob/master/figures/Overall_vs_group_edu_u_rate.png)
 ###Business cycle co-movements:
 ####Unemployment and productivity
 ![myimage-alt-tag](https://github.com/JulianPasc/Final-Project-Julien-Pascal/blob/master/figures/Cycle_unemployment_output.png)
@@ -30,7 +31,7 @@ Source:Author's calculations based on data from The Bureau of Labor Statistics. 
 ![myimage-alt-tag](https://github.com/JulianPasc/Final-Project-Julien-Pascal/blob/master/figures/Cycle_wages_output.png)
 
 ###Detrended wage deciles
-![myimage-alt-tag](https://github.com/JulianPasc/Final-Project-Julien-Pascal/blob/master/Data/delinearized_wage_deciles.png)
+![myimage-alt-tag](https://github.com/JulianPasc/Final-Project-Julien-Pascal/blob/master/figures/Detrended_wage_deciles.png)
 
 ## Updates:
 Update 0:
