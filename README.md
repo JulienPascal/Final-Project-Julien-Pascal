@@ -52,10 +52,11 @@ Update 3, 10/03/2016:
 
 Update 4, 11/03/2016:
 - Added some graphs that are produced by the files calculate_turnover_BLS.py and calculate_volatility_wages.py
+[files removed since update 5]
 
 Update 5, 16/03/2016:
 - Major reorganization of the repository:
   - reorganize the repository with a structure "src; test; data; figures; surpluses"
   - move the matlab version in the folder "matlab_old"
-  - create a main.jl file that rationalize the code
+  - create a main.jl file that rationalizes the code
 
