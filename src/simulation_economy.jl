@@ -19,16 +19,12 @@ module simulation_economy
 
 	export Simulate_Economy
 
-    # Using Ubuntu LTS 14.04 and I need to do the following for PyPlot to load without an error:
-    # Libdl.dlopen("/usr/lib/liblapack.so.3", Libdl.RTLD_GLOBAL) #Apparently they fixed the issue on recent issues of Julia
+	#change path_main if necessary:
+    path_main = "/home/julien/Final-Project-Julien-Pascal"
 
-    #ALREADY DONE IN THE MAIN FILE:
-    #path = "/home/julien/master-s_thesis/src" #the path to my directory
-    #cd(path) #locate in the correct directory 
-    
-	path_table = "/home/julien/master-s_thesis/tables/" #the path to my directory
-	path_surpluses = "/home/julien/master-s_thesis/surpluses/" #path to precalculated objects, to speed up the process
-	path_figures = "/home/julien/master-s_thesis/figures/" #where to save the figures
+	path_table = string(path_main,"/tables/")  #the path tables
+	path_surpluses = string(path_main,"/surpluses/")#path to precalculated objects, to speed up the process
+	path_figures = string(path_main,"/figures/") #where to save the figures
     #include("Copulas.jl") #From Florian Oswald: https://github.com/floswald/Copulas.jl/blob/master/main.jl
 
 
@@ -186,7 +182,7 @@ module simulation_economy
         return wi_m_high
     end
 
-    #######################
+    ########################
     #Calculate the low wages:
     function wi_low_f(i, discount, Markov, lambda1, M, N, Si_m, W_low_star, zi_m_grid)
 
@@ -246,7 +242,7 @@ module simulation_economy
     function parameters_estimated()
 
 	    # call it read estimated_parameters
-	    if isfile(string(path_surpluses, "estimated_parameters.csv"))
+	    if isfile(string(path_table, "estimated_parameters.csv"))
 	    	println("loading estimated parameters") 
 			coeff = readtable(string(path_table, "estimated_parameters.csv"))
 			z0 = coeff[:Value][1]
@@ -500,6 +496,7 @@ module simulation_economy
 	#############################################
 	# Function that actually simulate the economy
 	#############################################
+	# returns a dictionary 
 	function execute_simulation(n_years = 2500)
 
 		#Load the parameters, the grids and the value functions:
@@ -539,8 +536,6 @@ module simulation_economy
 		#n_years = 2500; # years to simulate
 		number_periods = n_years*4; # one period = one quarter
 
-		discard = round(Int,floor(number_periods/10)); #get rid of the first 10th observations
-		 
 		y_index_r = Array{Int16}(number_periods,1); #store the indexes of the shock 
 		y_r = Array{Float64}(number_periods,1) #store value of the shock
 
@@ -549,7 +544,7 @@ module simulation_economy
 		y_r[1,1] = ygrid[y_index_r[1,1], 1]; #initial shock value
 
 		#Initialization:
-		ut_m_r = ones(number_periods,M); #row for the period, column for ability
+		ut_m_r = ones(number_periods,M); #row for the period, column for ability level
 		St_m_r = Array{Float64}(number_periods,M); #row for the period, column for ability
 
 		ut_r = Array{Float64}(number_periods,1);
@@ -566,11 +561,6 @@ module simulation_economy
 
 		wi_m_r = zeros(number_periods,M);#row for the period, column for ability;
 		wi_r = zeros(number_periods,1); #mean wage
-
-		# wage per decile:
-		    # rows = time period
-		    # columns = percentile. ex: first row = 10th decile, 2nd row= 20th decile
-		w_p = zeros(number_periods,9); #initialization
 		    
 		#measure of unemployed workers:
 		m_unemployed_r = zeros(number_periods,M); #0 unemployed at t = 0
@@ -678,10 +668,80 @@ module simulation_economy
 
 		    y_r[t+1,1] = ygrid[y_index_r[t+1,1], 1];
 		end
+		
+		#Surpluses: contains the surplus value functions, the parameters, the parameter grids
+		#n_years: number years the simulation runs
+		#number_periods: number of periods the simulation runs (one period = one quarter) 
+		#y_r: deviation of productivity from its long time tredn
 
-		############################
-		# Analysis of the simulation
-		############################
+		return Dict("Surpluses"=> Surpluses ,"n_years"=>n_years, "number_periods"=>number_periods, "y_r"=>y_r , "ut_m_r"=>ut_m_r,
+		"ut_r"=>ut_r, "ft_r"=>ft_r, "st_r" => st_r, "wi_r" => wi_r, "wi_m_r" =>wi_m_r, "u_25_p"=>u_25_p, "u_50_p"=>u_50_p, "u_90_p"=>u_90_p,
+		"gt_wi_low_r"=>gt_wi_low_r, "gt_wi_high_r"=>gt_wi_high_r) 
+	end
+
+	############################
+	# Analysis of the simulation
+	############################
+	# model: has to be the output of the function execute_simulation()
+	# get_rid_of: to discard the impact of initial condition, get rid of a given percentage of first observations
+	function analyse_economy(model, get_rid_of = 10)
+
+		Surpluses = model["Surpluses"]
+
+		params = Surpluses["params"]
+		x_lower_bound = params["x_lower_bound"]
+		epsilon = params["x_lower_bound"]
+		sigma = params["sigma"]
+		pho= params["pho"]
+		eta = params["eta"]
+		mu = params["mu"]
+		z0 = params["z0"]
+		alpha = params["alpha"]
+	    N = params["N"] #number of states
+	    M = params["M"] #number of ability levels
+	    lambda0 = params["lambda0"] 
+	    lambda1 = params["lambda1"] 
+	    delta = params["delta"] 
+	    discount = params["discount"] 
+
+	    grids = Surpluses["grids"]
+	    zi_m_grid = grids["zi_m_grid"]
+	    xgrid = grids["xgrid"]
+	    ygrid = grids["ygrid"]
+	    Markov = grids["Markov"]
+	    lm = grids["lm"]
+
+	    Si_m = Surpluses["Si_m"]
+	    G = Surpluses["G"]
+	    p = Surpluses["p"]
+	    W_low_star = Surpluses["W_low_star"]
+	    W_low = Surpluses["W_low"]
+	    W_high_star = Surpluses["W_high_star"]
+	    W_high = Surpluses["W_high"]
+
+	    n_years = model["n_years"]
+	   	number_periods = model["number_periods"]
+	   	y_r =  model["y_r"]
+	   	ut_m_r = model["ut_m_r"]
+	   	ut_r = model["ut_r"]
+	   	ft_r = model["ft_r"]
+	   	st_r = model["st_r"]
+	   	wi_r = model["wi_r"]
+	   	wi_m_r =  model["wi_m_r"]
+
+	   	u_25_p = model["u_25_p"]
+	   	u_50_p = model["u_50_p"]
+	   	u_90_p = model["u_90_p"]
+
+	   	gt_wi_low_r = model["gt_wi_low_r"]
+	   	gt_wi_high_r =model["gt_wi_high_r"]
+
+		discard = round(Int,floor(number_periods/get_rid_of)); #get rid of the first "get_rid_of"th observations
+
+		# wage per decile:
+		    # rows = time period
+		    # columns = percentile. ex: first row = 10th decile, 2nd row= 20th decile
+		w_p = zeros(number_periods,9); #initialization
 
 		#Plot the surplus function:
         xgrid_plot = repmat(xgrid',N,1)
@@ -776,7 +836,7 @@ module simulation_economy
 		###############################################
 		# Calculate wage deciles and interdecile ratios 
 
-		trim = floor(Int16,0.5*discard); #to gain time, calculate for fewer periods
+		trim = floor(Int16,1*discard); #to gain time, calculate for fewer periods
 
 		D5_D1 = zeros(number_periods,1);
 		D9_D1 = zeros(number_periods,1);
@@ -828,23 +888,61 @@ module simulation_economy
 		#Plot wage deciles:
 		figure("8",figsize=(10,10))
 		for m = 1:9 #loop over the deciles
-		    plot(time_plot2, w_p[(number_periods-trim):(number_periods-1),m])
+		    plot(time_plot2, w_p[(number_periods-trim):(number_periods-1),m], label = string(m,"0th percentile"))
 		end
-
 		xlabel("Periods")
 		ylabel("wage")
 		title("Dynamics of Wage Deciles")
+		legend(loc="best",fancybox="true")
 		savefig("figures/Simulation_Dynamics_Wage_Deciles.png")
 
 		#Plot Interdecile ratios:
 		figure("9",figsize=(10,10))
-		plot(time_plot2, D5_D1[(number_periods-trim):(number_periods-1),1], color="green")
-		plot(time_plot2, D9_D1[(number_periods-trim):(number_periods-1),1], color="red")
-		plot(time_plot2, D9_D5[(number_periods-trim):(number_periods-1),1])
+		plot(time_plot2, D5_D1[(number_periods-trim):(number_periods-1),1], color="green", label = "D5_D1")
+		plot(time_plot2, D9_D1[(number_periods-trim):(number_periods-1),1], color="red", label = "D9_D1")
+		plot(time_plot2, D9_D5[(number_periods-trim):(number_periods-1),1], label = "D9_D5")
 		xlabel("Periods")
 		ylabel("Inter-decile ratios")
 		title("Wage Inequalities")
+		legend(loc="best",fancybox="true")
 		savefig("figures/Simulation_Wage_Inequalities.png")
+
+		#Apply the same transformations as for the empirical data:
+		#Deviation from the mean (there is not trend in this setting, no need to claculate OLS)
+		mean_wage = zeros(1,9); #column for percentile: first column = 10th percentile, etc... , 9th column = 90th percentile
+		length_deviation = (number_periods-1) - (number_periods-trim) +1
+		deviation_mean = zeros(length_deviation, 9) #row for time, column for ability;
+		for m = 1:9
+			#calculation:
+			mean_wage[1, m] = mean(w_p[(number_periods-trim):(number_periods-1), m])
+			deviation_mean[1:length_deviation, m] =  w_p[(number_periods-trim):(number_periods-1), m] - ones(length_deviation, 1)*mean_wage[1, m]
+		end
+
+		#Plot deviation from mean:
+		figure("10",figsize=(10,10))
+		for m = 1:9 #loop over the deciles
+		    plot(time_plot2, deviation_mean[1:length_deviation, m],label = string(m,"0th percentile"))
+		end
+
+		xlabel("Periods")
+		ylabel("wage")
+		title("Deviations of Wages Deciles from Mean")
+		legend(loc="best",fancybox="true")
+		savefig("figures/Simulation_Deviation_Wage_Deciles_From_Mean.png")
+
+		#Calculate the standard deviation of wage deciles:
+		std_wage_deciles = zeros(1, 9) #column for percentile: first column = 10th percentile, etc... , 9th column = 90th percentile
+		for m = 1:9 #loop over the percentiles
+		    std_wage_deciles[1, m] = std(deviation_mean[1:length_deviation, m])
+		end
+		params_wages = ["10th", "20th", "30th", "40th", "50th", "60th", "70th", "80th", "90th"]
+		wages_df = DataFrame()
+		wages_df[:Parameters] = params_wages
+		wages_df[:Std_Wage_Decile] = collect(transpose(round(std_wage_deciles,5))) #I use collect because otherwise I have a type issue; round to 5 decimal
+
+		println("Simulation results, Wages:")
+		println(wages_df)
+		writetable("tables/results_simulation_wages.csv", wages_df)
 
 		#Summary statistics:
 		mean_simulation = zeros(5)
@@ -878,23 +976,25 @@ module simulation_economy
 		params_name = ["y", "u", "ft", "st", "w"]
 		df = DataFrame()
 		df[:Parameters] = params_name 
-		df[:Mean] = mean_simulation
-		df[:Std] = std_simulation 
-		df[:Skewness] = skewness_simulation
-		df[:Kurtosis] = kurtosis_simulation
+		df[:Mean] = round(mean_simulation, 4)
+		df[:Std] = round(std_simulation, 4)
+		df[:Skewness] = round(skewness_simulation, 4)
+		df[:Kurtosis] = round(kurtosis_simulation, 4)
 
-		println("Simulation results:")
+		println("Simulation results, Moments:")
 		println(df)
-		writetable("tables/results_simulation.csv", df)
+		writetable("tables/results_simulation_moments.csv", df)
 
+		return Dict("Moments" => df, "Wages_deciles"=> df)
 	end
 
 	#Function that simulates the economy based on 
 	#the estimated parameters:
-	function Simulate_Economy()
+	function Simulate_and_Anlyse_Economy()
 
 		#exectue the simulation:
-		execute_simulation()
+		model_ouput = execute_simulation()
+		analyse_economy(model_ouput, 10) #get rid of the first 10th observations
 
 		println("enter y to close this session.")
 		ok = readline(STDIN) # Equivalent of the function "input" on the version of Julia I am running

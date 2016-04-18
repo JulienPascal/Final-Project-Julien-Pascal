@@ -3,7 +3,8 @@
 
 # Move to my folder: 
 home = ENV["HOME"]
-cd("/home/julien/master-s_thesis")	
+path_main = "/home/julien/Final-Project-Julien-Pascal"
+cd(path_main)	
 
 # Check for the existence of crucial files:
 
@@ -44,4 +45,8 @@ end
 include("src/simulation_economy.jl")
 using simulation_economy
 
-Simulate_Economy()
+model_ouput = simulation_economy.execute_simulation()
+
+simulation_economy.analyse_economy(model_ouput, 10)
+
+#Simulate_and_Analyse_Economy()
