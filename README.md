@@ -45,7 +45,7 @@ Source:Author's calculations based on data from the Bureau of Labor Statistics a
 
 ### Requirements
 ## Julia
-Julia Version 0.5.0-dev+3438, Commit a92c7ff, x86_64-linux-gnu. To install Julia, see http://julialang.org/downloads/platform.html. The pacakges PyPlot, Distributions, StatsFuns, JLD, HDF5, NLopt, DataFrames, Copulas are required. They can be installed using the commange Pkg.add(name_of_package), except for the last one which can be obtained using Pkg.clone("https://github.com/floswald/Copulas.jl.git")
+Julia Version 0.5.0-dev+3438, Commit a92c7ff, x86_64-linux-gnu. Until now, the code is not compatible with Julia version 0.4. To install Julia, see http://julialang.org/downloads/platform.html. The pacakges PyPlot, Distributions, StatsFuns, JLD, HDF5, NLopt, DataFrames, Copulas are required. They can be installed using the commange Pkg.add(name_of_package), except for the last one which can be obtained using Pkg.clone("https://github.com/floswald/Copulas.jl.git")
 
 ## Python
 The part that estimates the empirical moments is a Python script. The following version was used: Python 3.5.1 |Anaconda 2.4.1 (64-bit)| (default, Dec  7 2015, 11:16:01) 
