@@ -13,19 +13,18 @@
 # Model that performs the simulation of the economy
 module simulation_economy
 
-	using PyCall, PyPlot, Distributions, DataFrames, StatsFuns, JLD, HDF5, Copulas 
+	using PyPlot, Distributions, DataFrames, StatsFuns, JLD, Copulas 
 	#to install the package "Copulas": Pkg.clone("https://github.com/floswald/Copulas.jl.git")
 	#package from Florian Oswald
 
 	export Simulate_Economy
 
 	#change path_main if necessary:
-    path_main = "/home/julien/Final-Project-Julien-Pascal"
+	path_main = "/home/julien/Final-Project-Julien-Pascal"
 
 	path_table = string(path_main,"/tables/")  #the path tables
 	path_surpluses = string(path_main,"/surpluses/")#path to precalculated objects, to speed up the process
 	path_figures = string(path_main,"/figures/") #where to save the figures
-    #include("Copulas.jl") #From Florian Oswald: https://github.com/floswald/Copulas.jl/blob/master/main.jl
 
 
     ##################
@@ -287,7 +286,7 @@ module simulation_economy
 		#Load parameters
 		params = parameters_estimated()
 		x_lower_bound = params["x_lower_bound"]
-		epsilon = params["x_lower_bound"]
+		epsilon = params["epsilon"]
 		sigma = params["sigma"]
 		pho= params["pho"]
 		eta = params["eta"]
@@ -398,9 +397,12 @@ module simulation_economy
 	    if isfile(string(path_surpluses,"match_surplus.jld")) #load it if exists
 	        println(string(path_surpluses,"match_surplus.jld"," found"))
 	        println("loading it")
-	        Si_m = jldopen(string(path_surpluses,"match_surplus.jld"), "r") do file
-	            read(file, "Si_m")
-	        end
+	        #Si_m = jldopen(string(path_surpluses,"match_surplus.jld"), "r") do file
+	        #    read(file, "Si_m")
+	        #end
+	        file0 =  jldopen(string(path_surpluses,"match_surplus.jld"), "r")
+		    Si_m = read(file0, "Si_m")
+		    #close(file0)
 	    else #otherwise create it by vale function iteration                                   
 
 		    ##########################################################
@@ -408,19 +410,17 @@ module simulation_economy
 		    # N times M matrices
 		    # N = aggregate level
 		    # M = ability level
+	        Si_m = zeros(N,M);
 
-		    if create_surplus_function == 1
-		        Si_m = zeros(N,M);
+	        tol = 0.0001;
+	        maxits = 300;
+	        dif = tol+tol;
+	        its = 1;
 
-		        tol = 0.0001;
-		        maxits = 300;
-		        dif = tol+tol;
-		        its = 1;
-
-		        #initialization:
-		        up = ones(N,M);
-		        up_plus1 = zeros(N,M);
-		        compare = zeros(N,M);
+	        #initialization:
+	        up = ones(N,M);
+	        up_plus1 = zeros(N,M);
+	        compare = zeros(N,M);
 
 		        while dif>tol 
 		            up_plus1 =  G + discount*Markov*max(up,compare)
@@ -434,23 +434,26 @@ module simulation_economy
 		            end
 		        end
 
-		        Si_m = up
-		        
-		        #save the match surplus:
-		        jldopen(string(path_surpluses,"/match_surplus.jld"), "w") do file
-		           write(file, "Si_m", Si_m) 
-		        end
-		        println(string(path_surpluses,"/match_surplus.jld")," created")
-		    end
+	        Si_m = up
+	        #save the match surplus:
+	        jldopen(string(path_surpluses,"/match_surplus.jld"), "w") do file
+	        	write(file, "Si_m", Si_m) 
+	        end
+	        #println(string(path_surpluses,"/match_surplus.jld")," created")
 	    end
 
 	    # B. the wages:
 		if isfile(string(path_surpluses,"W_low_star.jld")) 
 			println(string(path_surpluses,"W_low_star.jld", " found"))
 			println("loading it")
-		    W_low_star = jldopen(string(path_surpluses,"W_low_star.jld"), "r") do file
-		            read(file, "W_low_star")
-		    end
+		    #W_low_star = jldopen(string(path_surpluses,"W_low_star.jld"), "r") do file
+		    #       read(file, "W_low_star")
+		    #end
+
+		    file1 =  jldopen(string(path_surpluses,"W_low_star.jld"), "r")
+		    W_low_star = read(file1, "W_low_star")
+		    #close(file1)
+
 		else
 			println(string(path_surpluses,"W_low_star.jld", " is missing"))
 		    error("Run the function Wages() of the module calculate_wages")
@@ -459,9 +462,13 @@ module simulation_economy
 		if isfile(string(path_surpluses,"W_low.jld")) 
 			println(string(path_surpluses,"W_low.jld", " found"))
 			println("loading it")
-		    W_low = jldopen(string(path_surpluses,"W_low.jld"), "r") do file
-		            read(file, "W_low")
-		    end
+		    #W_low = jldopen(string(path_surpluses,"W_low.jld"), "r") do file
+		    #       read(file, "W_low")
+		    #end
+		   	file2 =  jldopen(string(path_surpluses,"W_low.jld"), "r")
+		    W_low = read(file2, "W_low")
+		    #close(file2)
+
 		else
 			println(string(path_surpluses,"W_low.jld", " is missing"))
 		    error("Run the function Wages() of the module calculate_wages")
@@ -470,9 +477,14 @@ module simulation_economy
 		if isfile(string(path_surpluses,"W_high_star.jld"))
 			println("loading it")
 			println(string(path_surpluses,"W_high_star.jld", " found")) 
-		    W_high_star = jldopen(string(path_surpluses,"W_high_star.jld"), "r") do file
-		            read(file, "W_high_star")
-		    end
+		    #W_high_star = jldopen(string(path_surpluses,"W_high_star.jld"), "r") do file
+		    #        read(file, "W_high_star")
+		    #end
+
+		    file3 =  jldopen(string(path_surpluses,"W_high_star.jld"), "r")
+		    W_high_star = read(file3, "W_high_star")
+		    #close(file3)
+		    
 		else
 			println(string(path_surpluses,"W_high_star.jld", " is missing"))
 		    error("Run the function Wages() of the module calculate_wages")
@@ -481,9 +493,14 @@ module simulation_economy
 		if isfile(string(path_surpluses,"W_high.jld")) 
 			println("loading it")
 			println(string(path_surpluses,"W_high.jld", " found"))
-		     W_high = jldopen(string(path_surpluses,"W_high.jld"), "r") do file
-		            read(file, "W_high")
-		    end
+		    #W_high = jldopen(string(path_surpluses,"W_high.jld"), "r") do file
+		    #       read(file, "W_high")
+		    #end
+
+		    file4 =  jldopen(string(path_surpluses,"W_high.jld"), "r")
+		    W_high = read(file4, "W_high")
+		    #close(file4)
+
 		else
 			println(string(path_surpluses,"W_high.jld", " is missing"))
 		    error("Run the function Wages() of the module calculate_wages")
@@ -499,12 +516,13 @@ module simulation_economy
 	# returns a dictionary 
 	function execute_simulation(n_years = 2500)
 
+		println("Simulate the economy")
 		#Load the parameters, the grids and the value functions:
 		Surpluses = create_surpluses_functions()
 
 		params = Surpluses["params"]
 		x_lower_bound = params["x_lower_bound"]
-		epsilon = params["x_lower_bound"]
+		epsilon = params["epsilon"]
 		sigma = params["sigma"]
 		pho= params["pho"]
 		eta = params["eta"]
@@ -592,6 +610,7 @@ module simulation_economy
 		# Loop over the economy:
 		for t=1:(number_periods-1) 
 		    
+		    println(string("quarter #:", t))
 		    # Calculate the aggregate unemployment
 		    ut_r[t,1] = dot(ut_m_r[t,:],lm[:,1]); #dot product. 
 
@@ -686,11 +705,12 @@ module simulation_economy
 	# get_rid_of: to discard the impact of initial condition, get rid of a given percentage of first observations
 	function analyse_economy(model, get_rid_of = 10)
 
+		println("Analyse the economy")
 		Surpluses = model["Surpluses"]
 
 		params = Surpluses["params"]
 		x_lower_bound = params["x_lower_bound"]
-		epsilon = params["x_lower_bound"]
+		epsilon = params["epsilon"]
 		sigma = params["sigma"]
 		pho= params["pho"]
 		eta = params["eta"]
@@ -747,6 +767,7 @@ module simulation_economy
         xgrid_plot = repmat(xgrid',N,1)
         ygrid_plot = repmat(ygrid,1,M)
 
+        
         fig = figure("pyplot_surfaceplot",figsize=(10,10))
         ax = fig[:add_subplot](2,1,1, projection = "3d") 
         ax[:plot_surface](xgrid_plot, ygrid_plot, Si_m, rstride=2,edgecolors="k", cstride=2, cmap=ColorMap("gray"), alpha=0.8, linewidth=0.25) 
@@ -763,6 +784,7 @@ module simulation_economy
         title("Contour Plot")
         tight_layout()
         savefig("figures/Surplus_function.png")
+        
 
 		# Plot productivity match:
 		figure("1",figsize=(10,10))
@@ -843,6 +865,7 @@ module simulation_economy
 		D9_D5 = zeros(number_periods,1);
 
 		for t = (number_periods-trim):(number_periods-1)
+
 		    per = 0; #intialization
 
 		    for i=1:9
@@ -932,13 +955,24 @@ module simulation_economy
 
 		#Calculate the standard deviation of wage deciles:
 		std_wage_deciles = zeros(1, 9) #column for percentile: first column = 10th percentile, etc... , 9th column = 90th percentile
+
 		for m = 1:9 #loop over the percentiles
 		    std_wage_deciles[1, m] = std(deviation_mean[1:length_deviation, m])
 		end
+
 		params_wages = ["10th", "20th", "30th", "40th", "50th", "60th", "70th", "80th", "90th"]
 		wages_df = DataFrame()
 		wages_df[:Parameters] = params_wages
-		wages_df[:Std_Wage_Decile] = collect(transpose(round(std_wage_deciles,5))) #I use collect because otherwise I have a type issue; round to 5 decimal
+
+		println(transpose(round(std_wage_deciles,5)))
+
+		wages_df[:Stdev_Wage_Decile] = 0.0 #initializaion
+
+		for m =1:9
+			wages_df[m,:Stdev_Wage_Decile] = sum(round(std_wage_deciles[1, m],5))
+		end
+
+		#transpose(round(std_wage_deciles,5)) #I use collect because otherwise I have a type issue; round to 5 decimal
 
 		println("Simulation results, Wages:")
 		println(wages_df)

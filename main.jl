@@ -23,7 +23,7 @@ if isfile("tables/estimated_parameters.csv") == false
 	println("this may take a while")
 
 	include("src/estimate_parameters.jl")
-	using 	estimate_parameters
+	using estimate_parameters
 	MSM()
 end
 
@@ -45,8 +45,12 @@ end
 include("src/simulation_economy.jl")
 using simulation_economy
 
+#In two steps:
+#Simulate the model and store the results:
 model_ouput = simulation_economy.execute_simulation()
 
+#Analyse the economy:
 simulation_economy.analyse_economy(model_ouput, 10)
 
+#In one step:
 #Simulate_and_Analyse_Economy()
