@@ -13,7 +13,7 @@
 # Module that calculates the wages value functions based on the paramaters estimated by the MSM
 module calculate_wages
 
-	using PyPlot, Distributions, StatsFuns, JLD, NLopt, DataFrames, Copulas
+	using PyPlot, Distributions, StatsFuns, JLD, DataFrames, Copulas
 
 	export Wages
 

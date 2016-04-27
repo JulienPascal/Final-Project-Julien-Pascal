@@ -23,8 +23,9 @@ if isfile("tables/estimated_parameters.csv") == false
 	println("this may take a while")
 
 	include("src/estimate_parameters.jl")
+
 	using estimate_parameters
-	MSM()
+	MSM("NLopt")
 end
 
 # C. Are the value functions for the wages there?

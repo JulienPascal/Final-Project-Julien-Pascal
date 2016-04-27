@@ -839,6 +839,7 @@ module simulation_economy
 
 
 		#Unemployment rate by education level
+		"""
 		figure("7",figsize=(10,10))
 		# 25% low skills
 		scatter(ut_r[discard:(number_periods-1),1], u_25_p[discard:(number_periods-1),1], alpha=0.4, color="green") 
@@ -850,7 +851,9 @@ module simulation_economy
 		xlabel("overall unemployment rate")
 		ylabel("unemployment rate by skill")
 		savefig("figures/Simulation_unemployment_rate_by_skill.png")
+		"""
 
+		"""
 		#########################
 		#Dynamics of wage decile:
 		#########################
@@ -971,12 +974,11 @@ module simulation_economy
 		for m =1:9
 			wages_df[m,:Stdev_Wage_Decile] = sum(round(std_wage_deciles[1, m],5))
 		end
-
-		#transpose(round(std_wage_deciles,5)) #I use collect because otherwise I have a type issue; round to 5 decimal
-
+		
 		println("Simulation results, Wages:")
 		println(wages_df)
 		writetable("tables/results_simulation_wages.csv", wages_df)
+		"""
 
 		#Summary statistics:
 		mean_simulation = zeros(5)
