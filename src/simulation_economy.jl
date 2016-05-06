@@ -26,6 +26,21 @@ module simulation_economy
 	path_surpluses = string(path_main,"/surpluses/")#path to precalculated objects, to speed up the process
 	path_figures = string(path_main,"/figures/") #where to save the figures
 
+	#Application from [0,1] intp [1,M]
+	#To find the index corresponding to the percentile
+	#
+	#Use the fact that the Beta distribution is on [0,1]
+	#and the function was discretized on an equidistant grid
+	#
+	# p = vector of pecentiles
+	# M = integer, number of points
+	function percentile_to_index(p::Float64,M::Int)
+
+		index = 0 #initialization
+		index = round(Int,(M-1)*p +1) #computation
+
+		return index
+	end
 
     ##################
     # Function that returns the inverse of lognormal distribution
@@ -92,7 +107,7 @@ module simulation_economy
 
     #############################################################
     # function that calculate the measure of workers at hiw wages
-    function gt_plus1_high_f(ut_m,gt_wi_low,gt_wi_high,i, lm, delta, lambda1, M, W_low, W_high, Si_m)
+    function gt_plus1_high_f(ut_m, gt_wi_low, gt_wi_high, i, lm, delta, lambda1, M, W_low, W_high, Si_m)
 
         gt_plus1 = zeros(1,M);
 
@@ -116,7 +131,7 @@ module simulation_economy
 
     #############################################################
     #function that calculates the measure of workers at low wages
-    function gt_plus1_low_f(ut_m,gt_wi_low,gt_wi_high,i, lm, lambda0, delta, lambda1, M, W_low, W_high, Si_m)
+    function gt_plus1_low_f(ut_m, gt_wi_low, gt_wi_high, i, lm, lambda0, delta, lambda1, M, W_low, W_high, Si_m)
         #Inputs:
         # ut_m = 1 times M vector 
         # gt_wi_low =  1 times M vector
@@ -244,28 +259,76 @@ module simulation_economy
 	    if isfile(string(path_table, "estimated_parameters.csv"))
 	    	println("loading estimated parameters") 
 			coeff = readtable(string(path_table, "estimated_parameters.csv"))
+			"""
 			z0 = coeff[:Value][1]
 		    sigma = coeff[:Value][2]
 		    pho = coeff[:Value][3]     
 		    lambda0 = coeff[:Value][4] 
 		    eta = coeff[:Value][5]
 		    mu = coeff[:Value][6]
+		    x_lower_bound = coeff[:Value][7]
+		    delta = coeff[:Value][8] #exogenous layoff rate
+
 		    k = 0.12
 		    lambda1  = k*lambda0
-		    s = 0.42
-		    x_lower_bound = 0.73
+		    #x_lower_bound = 0.73
 		    alpha = 0.64
 		    ##############################################""
 
 		    tau = 0.5
-		    delta = 0.042 # "4.2# exogenous layoff rate"
+		    #delta = 0.046
 		    r = 0.05/4 # quarterly interest rate
 		    discount = (1 - delta)/(1 + r)
 		    epsilon = 0.002
+		    """
+
+		    """
+		    z0 = coeff[:Value][1];
+		    sigma = coeff[:Value][2];
+		    lambda0 = coeff[:Value][3];
+		    eta =  coeff[:Value][4];
+		    mu =  coeff[:Value][5];
+		    x_lower_bound = coeff[:Value][6] #lower bound of the ability level
+		    alpha = coeff[:Value][7]
+		    delta = coeff[:Value][8]
+
+		    pho = 0.94
+		    k = 0.12;
+		    lambda1  = k*lambda0;
+		    #x_lower_bound = 0.73
+		    #alpha = 0.64
+		    tau = 0.5
+		    #delta = 0.043 # exogenous layoff rate
+
+		    r = 0.05/4 # interest rate
+		    discount = (1 - delta)/(1 + r)
+		    epsilon = 0.002
+		    """
+
+			z0 = coeff[:Value][1];
+		    sigma = coeff[:Value][2];
+		    lambda0 = coeff[:Value][3];
+		    eta =  coeff[:Value][4];
+		    mu =  coeff[:Value][5];
+		    x_lower_bound = coeff[:Value][6] #lower bound of the ability level
+
+		    pho = 0.94
+		    k = 0.12;
+		    lambda1  = k*lambda0;
+		    #x_lower_bound = 0.73
+		    alpha = 0.64
+		    tau = 0.5
+		    delta = 0.042 # exogenous layoff rate
+
+		    r = 0.05/4 # interest rate
+		    discount = (1 - delta)/(1 + r)
+		    epsilon = 0.002
+
+
 		    N = 100 #number of states
 			M = 500 #number of ability levels
 
-			return Dict("z0"=> z0, "sigma"=> sigma,"pho"=>pho,"lambda0"=>lambda0,"k"=>k, "lambda1"=>lambda1, "s"=>s, "x_lower_bound"=>x_lower_bound, "eta"=>eta, "mu"=>mu,"alpha"=>alpha, "tau" => tau, "delta" => delta, "r" =>r , "discount" =>discount, "epsilon" =>epsilon, "N"=>N, "M"=>M) 
+			return Dict("z0"=> z0, "sigma"=> sigma,"pho"=>pho,"lambda0"=>lambda0,"k"=>k, "lambda1"=>lambda1, "x_lower_bound"=>x_lower_bound, "eta"=>eta, "mu"=>mu,"alpha"=>alpha, "tau" => tau, "delta" => delta, "r" =>r , "discount" =>discount, "epsilon" =>epsilon, "N"=>N, "M"=>M) 
  
 		else
 			println(string(path_table, "estimated_parameters.csv"," not found"))
@@ -361,7 +424,6 @@ module simulation_economy
 
 		return Dict("xgrid"=>xgrid,"agrid"=>agrid,"ygrid"=>ygrid, "Markov"=>Markov, "cop"=>cop,
 		"lm"=>lm, "b"=>b, "zi_m_grid"=>zi_m_grid, "params"=> params) 
-
 	end
 
 
@@ -394,6 +456,7 @@ module simulation_economy
 		end
 
     	# A. The match surplus
+    	#=
 	    if isfile(string(path_surpluses,"match_surplus.jld")) #load it if exists
 	        println(string(path_surpluses,"match_surplus.jld"," found"))
 	        println("loading it")
@@ -403,16 +466,19 @@ module simulation_economy
 	        file0 =  jldopen(string(path_surpluses,"match_surplus.jld"), "r")
 		    Si_m = read(file0, "Si_m")
 		    #close(file0)
-	    else #otherwise create it by vale function iteration                                   
+	    else #otherwise create it by vale function iteration   
+	    =#                                
 
 		    ##########################################################
 		    # Calculate the match surplus by value function iteration:
 		    # N times M matrices
 		    # N = aggregate level
 		    # M = ability level
+		    println("Calculating the match surplus:")
 	        Si_m = zeros(N,M);
 
-	        tol = 0.0001;
+	        #tol = 0.0001;
+	        tol = 0.01;
 	        maxits = 300;
 	        dif = tol+tol;
 	        its = 1;
@@ -436,11 +502,11 @@ module simulation_economy
 
 	        Si_m = up
 	        #save the match surplus:
-	        jldopen(string(path_surpluses,"/match_surplus.jld"), "w") do file
-	        	write(file, "Si_m", Si_m) 
-	        end
+	       	#jldopen(string(path_surpluses,"/match_surplus.jld"), "w") do file
+	        #	write(file, "Si_m", Si_m) 
+	        #end
 	        #println(string(path_surpluses,"/match_surplus.jld")," created")
-	    end
+	    #end
 
 	    # B. the wages:
 		if isfile(string(path_surpluses,"W_low_star.jld")) 
@@ -542,6 +608,7 @@ module simulation_economy
 	    ygrid = grids["ygrid"]
 	    Markov = grids["Markov"]
 	    lm = grids["lm"]
+	    b = grids["b"] #beta distribution
 
 	    Si_m = Surpluses["Si_m"]
 	    G = Surpluses["G"]
@@ -550,6 +617,16 @@ module simulation_economy
 	    W_low = Surpluses["W_low"]
 	    W_high_star = Surpluses["W_high_star"]
 	    W_high = Surpluses["W_high"]
+
+	    # Load the randomly generated numbers:
+		if isfile(string(path_surpluses,"random_numbers.jld")) #load it if exists
+	        println(string(path_surpluses,"random_numbers.jld"," found"))
+	        println("loading it")
+	        file_random_numbers =  jldopen(string(path_surpluses,"random_numbers.jld"), "r")
+		    random_numbers = read(file_random_numbers, "random_numbers")
+	    else 
+	    	error("random numbers not generated")
+	    end
 
 		#n_years = 2500; # years to simulate
 		number_periods = n_years*4; # one period = one quarter
@@ -583,19 +660,17 @@ module simulation_economy
 		#measure of unemployed workers:
 		m_unemployed_r = zeros(number_periods,M); #0 unemployed at t = 0
 
-		#Indexes to find the percentiles in the distribution of workers
-		#This is for the specific distribution I have specified
-		#Improvement: calculate it for every distribution 
-		p_10 = 43;
-		p_20 = 65;
-		p_25 = 75;
-		p_30 = 84;
-		p_40 = 103;
-		p_50 = 122;
-		p_60 = 143;
-		p_70 = 167;
-		p_80 = 197;
-		p_90 = 239;
+				#Indexes to find the percentiles in the distribution of workers:
+		p_10 = percentile_to_index(quantile(b, 0.10), M) # index of the 10th percentile on the grid [1,M]
+		p_20 = percentile_to_index(quantile(b, 0.20), M) # index of the 20th percentile on the grid [1,M]
+		p_25 = percentile_to_index(quantile(b, 0.25), M) # etc.
+		p_30 = percentile_to_index(quantile(b, 0.30), M)
+		p_40 = percentile_to_index(quantile(b, 0.40 ),M)
+		p_50 = percentile_to_index(quantile(b, 0.50), M)
+		p_60 = percentile_to_index(quantile(b, 0.60), M)
+		p_70 = percentile_to_index(quantile(b, 0.70), M)
+		p_80 = percentile_to_index(quantile(b, 0.80), M)
+		p_90 = percentile_to_index(quantile(b, 0.90), M)
 
 		#unemployment by education:
 		#25th percentile:
@@ -605,12 +680,15 @@ module simulation_economy
 		#90th percentile
 		u_90_p = zeros(number_periods,1);
 
+		#At t=1, half on the people at the starting salary and half of the people at the promotion salary
+		gt_wi_low_r[1,:] = transpose(lm)/2
+		gt_wi_high_r[1,:] = transpose(lm)/2
 
 		########################
 		# Loop over the economy:
 		for t=1:(number_periods-1) 
 		    
-		    println(string("quarter #:", t))
+		    #println(string("quarter #:", t))
 		    # Calculate the aggregate unemployment
 		    ut_r[t,1] = dot(ut_m_r[t,:],lm[:,1]); #dot product. 
 
@@ -651,7 +729,7 @@ module simulation_economy
 
 		    #measure of workers of ability m employed at high wage at the end of
 		    #period t
-		    gt_wi_high_r[t+1,:] = gt_plus1_high_f(ut_m_r[t,:]',gt_wi_low_r[t,:]',gt_wi_high_r[t,:]',y_index_r[t,1], lm, delta, lambda1, M, W_low, W_high, Si_m);
+		    gt_wi_high_r[t+1,:] = gt_plus1_high_f(ut_m_r[t,:]', gt_wi_low_r[t,:]', gt_wi_high_r[t,:]', y_index_r[t,1], lm, delta, lambda1, M, W_low, W_high, Si_m);
 
 		    #measure of unemployed workers at the end of period t:
 		    # = mesure of workers with ability m minus employed people
@@ -659,24 +737,39 @@ module simulation_economy
 
 		    #calculate the average wage by worker type:
 		    #weight by the measure of workers with low/high wages:
-		    wi_m_r[t,:] = transpose((wi_m_low_r[t,:].*gt_wi_low_r[t+1,:] + wi_m_high_r[t,:].*gt_wi_high_r[t+1,:])./(gt_wi_low_r[t+1,:]+gt_wi_high_r[t+1,:]));
-		    
-		    ####################
-		    # mean wage
+		    for i=1:M #loop over ability level
+		    	mass = gt_wi_low_r[t+1,i] + gt_wi_high_r[t+1,i]
+		    	if (mass!= 0) & (isnan(mass)==false) #cannot divide by zero and don't want to deal with NaN
+					wi_m_r[t,i] = (wi_m_low_r[t,i]*gt_wi_low_r[t+1,i] + wi_m_high_r[t,i]*gt_wi_high_r[t+1,i])/(gt_wi_low_r[t+1,i] + gt_wi_high_r[t+1,i])
+				else
+			   		wi_m_r[t,i] = NaN 
+			   	end
+			end
+		    ############################
+		    # mean wage denoted by wi_r
+		    #
 		    # calculate recursively the mean wage:
-		        wi_r[t,1]= 0; #initialization
-		        csum = 0; #initialisation
-		        for i=1:M
-		            if (isnan(wi_m_r[t,i])==false) #do not take into account unemployed workers
-		            wi_r[t,1] = wi_r[t,1] + wi_m_r[t,i]*(gt_wi_low_r[t+1,i]+gt_wi_high_r[t+1,i]); #weight by the measure of workers at the given wage
-		            csum = csum + (gt_wi_low_r[t+1,i]+gt_wi_high_r[t+1,i]); 
-		            end
-		        end
-		        wi_r[t,1] = wi_r[t,1]/csum; 
+			wi_r[t,1]= 0; #initialization
+			csum = 0; #initialisation
+
+			for i=1:M #loop over ability
+				mass = gt_wi_low_r[t+1,i] + gt_wi_high_r[t+1,i]
+				if (mass!= 0) & (isnan(mass)==false) & (isnan(wi_m_r[t,i])==false) #cannot divide by zero and don't want to deal with NaN
+					wi_r[t,1] = wi_r[t,1] + wi_m_r[t,i]*mass; #weight by the measure of workers at the given wage
+					csum = csum + mass; 
+				end
+			end
+
+			if csum != 0
+				wi_r[t,1] = wi_r[t,1]/csum; #divide by the mass of workers who have a wage
+			else
+				wi_r[t,1] = NaN #no one has a wage. 
+			end
 		    ######################
 
 		    # New shock from the markov transition matrix:
-		    r = rand(); #draw a number from the uniform distribution on 0, 1
+		    #r = rand(); #draw a number from the uniform distribution on 0, 1
+		    r = random_numbers[t]
 		    
 		    # I use the Markov transition matrix previously defined:
 		    prob = Markov[y_index_r[t,1],:];
@@ -695,7 +788,7 @@ module simulation_economy
 
 		return Dict("Surpluses"=> Surpluses ,"n_years"=>n_years, "number_periods"=>number_periods, "y_r"=>y_r , "ut_m_r"=>ut_m_r,
 		"ut_r"=>ut_r, "ft_r"=>ft_r, "st_r" => st_r, "wi_r" => wi_r, "wi_m_r" =>wi_m_r, "u_25_p"=>u_25_p, "u_50_p"=>u_50_p, "u_90_p"=>u_90_p,
-		"gt_wi_low_r"=>gt_wi_low_r, "gt_wi_high_r"=>gt_wi_high_r) 
+		"gt_wi_low_r"=>gt_wi_low_r, "gt_wi_high_r"=>gt_wi_high_r, "lm"=>lm) 
 	end
 
 	############################
@@ -758,6 +851,18 @@ module simulation_economy
 
 		discard = round(Int,floor(number_periods/get_rid_of)); #get rid of the first "get_rid_of"th observations
 
+		#disrtribution of workers
+		figure("Distribution_workers 1",figsize=(10,10))
+		plot(xgrid[:],lm[:])
+		xlabel("ability level")
+		ylabel("mass of worker at each ability level")
+		savefig("figures/Distribution_workers_by_ability.png")
+
+		figure("Distribution_workers 2",figsize=(10,10))
+		plot(lm[:])
+		xlabel("Index ability level on [1,M]")
+		ylabel("mass of worker at each index")
+
 		# wage per decile:
 		    # rows = time period
 		    # columns = percentile. ex: first row = 10th decile, 2nd row= 20th decile
@@ -767,10 +872,10 @@ module simulation_economy
         xgrid_plot = repmat(xgrid',N,1)
         ygrid_plot = repmat(ygrid,1,M)
 
-        
+        """
         fig = figure("pyplot_surfaceplot",figsize=(10,10))
         ax = fig[:add_subplot](2,1,1, projection = "3d") 
-        ax[:plot_surface](xgrid_plot, ygrid_plot, Si_m, rstride=2,edgecolors="k", cstride=2, cmap=ColorMap("gray"), alpha=0.8, linewidth=0.25) 
+        ax[:plot_surface](xgrid_plot, ygrid_plot, Si_m, rstride=2, edgecolors="k", cstride=2, cmap=ColorMap("gray"), alpha=0.8, linewidth=0.25) 
         xlabel("X") 
         ylabel("Y")
         title("Surface Plot")
@@ -784,12 +889,22 @@ module simulation_economy
         title("Contour Plot")
         tight_layout()
         savefig("figures/Surplus_function.png")
-        
+        """
+
+        fig = figure("pyplot_surfaceplot",figsize=(10,10))
+        ax = fig[:add_subplot](1,1,1) 
+        cp = ax[:contour](xgrid_plot, ygrid_plot, Si_m, linewidth=2.0) 
+        ax[:clabel](cp, inline=1, fontsize=10) 
+        xlabel("ability xm") 
+        ylabel("productivity y")
+        title("Contour Plot")
+        tight_layout()
+        savefig("figures/Surplus_function.png")
 
 		# Plot productivity match:
 		figure("1",figsize=(10,10))
 		for m=1:10:M
-		    plot(ygrid,p[:,m])
+		    plot(ygrid[:],p[:,m])
 		end
 		xlabel("Aggregate State") 
 		ylabel("Productivity")
@@ -799,7 +914,7 @@ module simulation_economy
 		figure("2",figsize=(10,10))
 		time_plot = discard:(number_periods-1);
 		# Plot the shock:
-		plot(time_plot ,y_r[discard:(number_periods-1),1])
+		plot(time_plot[:] ,y_r[discard:(number_periods-1),1])
 		xlabel("Periods") 
 		ylabel("Aggregate shock")
 		title("Aggregate shock over time")
@@ -807,7 +922,7 @@ module simulation_economy
 
 		figure("3",figsize=(10,10))
 		#Plot aggregate unemployment:
-		plot(time_plot,ut_r[discard:(number_periods-1),1])
+		plot(time_plot[:],ut_r[discard:(number_periods-1),1])
 		xlabel("Periods") 
 		ylabel("Unemployment rate")
 		title("Aggregate Unemployment rate over time")
@@ -815,7 +930,7 @@ module simulation_economy
 
 		figure("4",figsize=(10,10))
 		#Plot exit rate from unemployment:
-		plot(time_plot,ft_r[discard:(number_periods-1),1])
+		plot(time_plot[:],ft_r[discard:(number_periods-1),1])
 		xlabel("Periods") 
 		ylabel("ft")
 		title("Exit rate from unemployment")
@@ -823,7 +938,7 @@ module simulation_economy
 
 		figure("5",figsize=(10,10))
 		#Plot job destruction rate:
-		plot(time_plot, st_r[discard:(number_periods-1),1])
+		plot(time_plot[:], st_r[discard:(number_periods-1),1])
 		xlabel("Periods") 
 		ylabel("st")
 		title("Job destruction rate")
@@ -831,7 +946,7 @@ module simulation_economy
 
 		#plot the average wage
 		figure("6",figsize=(10,10))
-		plot(time_plot, wi_r[discard:(number_periods-1),1]);
+		plot(time_plot[:], wi_r[discard:(number_periods-1),1]);
 		title("Mean Wage")
 		xlabel("Periods")
 		ylabel("wage")
@@ -839,20 +954,28 @@ module simulation_economy
 
 
 		#Unemployment rate by education level
-		"""
 		figure("7",figsize=(10,10))
 		# 25% low skills
-		scatter(ut_r[discard:(number_periods-1),1], u_25_p[discard:(number_periods-1),1], alpha=0.4, color="green") 
+		scatter(ut_r[discard:(number_periods-1),1], u_25_p[discard:(number_periods-1),1], alpha=0.4, color="green", label ="25th percentile ability") 
 		# 50% low skills
-		scatter(ut_r[discard:(number_periods-1),1], u_50_p[discard:(number_periods-1),1], alpha=0.7, color="red")
+		scatter(ut_r[discard:(number_periods-1),1], u_50_p[discard:(number_periods-1),1], alpha=0.7, color="red", label ="50th percentile ability")
 		# 90% low skills
-		scatter(ut_r[discard:(number_periods-1),1], u_90_p[discard:(number_periods-1),1], alpha=1)
+		scatter(ut_r[discard:(number_periods-1),1], u_90_p[discard:(number_periods-1),1], alpha=1, label ="90th percentile ability")
 		title("Unemployment Rate Among Various Skill Groups")
 		xlabel("overall unemployment rate")
-		ylabel("unemployment rate by skill")
+		ylabel("unemployment rate by ability")
+		legend(loc="best",fancybox="true")
 		savefig("figures/Simulation_unemployment_rate_by_skill.png")
-		"""
 
+		#Scatterplot aggregate unemployment rate vs productivity
+		figure("7bis",figsize=(10,10))
+		scatter(y_r[discard:(number_periods-1),1], ut_r[discard:(number_periods-1),1], alpha=0.4) 
+		title("Productivity and Unemployment Rate")
+		xlabel("Productivity")
+		ylabel("Aggregate unemployment rate")
+		legend(loc="best",fancybox="true")
+		savefig("figures/Simulation_Productivity_and_Unemployment_Rate.png")
+		
 		"""
 		#########################
 		#Dynamics of wage decile:
@@ -874,30 +997,30 @@ module simulation_economy
 		    for i=1:9
 
 		        #choose the decile of interest
-		        per = per + 0.1;
+		        per = per + 0.1; #10th, 20th, etc...
 		        a = 0; #intialization
 		        sump = 0;
 		        
-		        while ((sump<per) & (a<500))
+		        while ((sump<per) & (a<500)) #find the ability index that corresponds to the decile "per"
 		                
-		              #initialize values:
-		              a = a+1;
-		              sump=0;
-		              csum=0;
-		              
-		              #calculate a sum
-		              for m = 1:a #loop over ability levels
-		                      if (((wi_m_r[t,m] < wi_m_r[t,a]) & (isnan(wi_m_r[t,m]) == false))) #take into account only employed workers
-		                       sump = sump + (gt_wi_low_r[t+1, m] + gt_wi_high_r[t+1, m]); #weight by the distribution of workers
-		                      end
-		              end
-		              csum = sum(gt_wi_low_r[t+1,:]+ gt_wi_high_r[t+1,:]);
-		              
-		              if csum !=0 
-		                sump = sump/csum;
-		              else
-		                sump = 0;  
-		              end
+					#initialize values:
+					a = a+1;
+					sump=0;
+					csum=0;
+		         
+		            #calculate a sum
+		            for m = 1:a #loop over ability levels
+						if ((wi_m_r[t,m] < wi_m_r[t,a]) & (wi_m_r[t,m]!=0) & (isnan(wi_m_r[t,m]) == false)) #take into account only employed workers
+						sump = sump + (gt_wi_low_r[t+1, m] + gt_wi_high_r[t+1, m]); #weight by the distribution of workers
+						end
+		             end
+					csum = sum(gt_wi_low_r[t+1,:] + gt_wi_high_r[t+1,:]);
+
+					if csum !=0 
+						sump = sump/csum;
+					else
+						sump = 0;  
+					end
 		        end
 		        
 		        #store the value of the wage decile:
@@ -914,7 +1037,7 @@ module simulation_economy
 		#Plot wage deciles:
 		figure("8",figsize=(10,10))
 		for m = 1:9 #loop over the deciles
-		    plot(time_plot2, w_p[(number_periods-trim):(number_periods-1),m], label = string(m,"0th percentile"))
+		    plot(time_plot2[:], w_p[(number_periods-trim):(number_periods-1),m], label = string(m,"0th percentile"))
 		end
 		xlabel("Periods")
 		ylabel("wage")
@@ -924,9 +1047,9 @@ module simulation_economy
 
 		#Plot Interdecile ratios:
 		figure("9",figsize=(10,10))
-		plot(time_plot2, D5_D1[(number_periods-trim):(number_periods-1),1], color="green", label = "D5_D1")
-		plot(time_plot2, D9_D1[(number_periods-trim):(number_periods-1),1], color="red", label = "D9_D1")
-		plot(time_plot2, D9_D5[(number_periods-trim):(number_periods-1),1], label = "D9_D5")
+		plot(time_plot2[:], D5_D1[(number_periods-trim):(number_periods-1),1], color="green", label = "D5_D1")
+		plot(time_plot2[:], D9_D1[(number_periods-trim):(number_periods-1),1], color="red", label = "D9_D1")
+		plot(time_plot2[:], D9_D5[(number_periods-trim):(number_periods-1),1], label = "D9_D5")
 		xlabel("Periods")
 		ylabel("Inter-decile ratios")
 		title("Wage Inequalities")
@@ -947,7 +1070,7 @@ module simulation_economy
 		#Plot deviation from mean:
 		figure("10",figsize=(10,10))
 		for m = 1:9 #loop over the deciles
-		    plot(time_plot2, deviation_mean[1:length_deviation, m],label = string(m,"0th percentile"))
+		    plot(time_plot2[:], deviation_mean[1:length_deviation, m],label = string(m,"0th percentile"))
 		end
 
 		xlabel("Periods")
@@ -978,7 +1101,7 @@ module simulation_economy
 		println("Simulation results, Wages:")
 		println(wages_df)
 		writetable("tables/results_simulation_wages.csv", wages_df)
-		"""
+		
 
 		#Summary statistics:
 		mean_simulation = zeros(5)
@@ -1021,7 +1144,8 @@ module simulation_economy
 		println(df)
 		writetable("tables/results_simulation_moments.csv", df)
 
-		return Dict("Moments" => df, "Wages_deciles"=> df)
+		return Dict("Moments" => df, "Wages_deciles"=> wages_df)
+		"""
 	end
 
 	#Function that simulates the economy based on 

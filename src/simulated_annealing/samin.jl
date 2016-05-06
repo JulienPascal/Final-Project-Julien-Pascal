@@ -88,8 +88,8 @@ Returns:
            * third: function value
 
 Example: see samin_test
-
 =#
+
 function samin(obj_fn, x, lb, ub; nt=5, ns=5, rt=0.5, maxevals=1000000, neps=5, functol=1e-8, paramtol=1e-5, verbosity=2)
     n = size(x,1) # dimension of parameter
     #  Set initial values

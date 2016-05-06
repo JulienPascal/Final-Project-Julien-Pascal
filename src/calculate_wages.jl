@@ -57,24 +57,70 @@ module calculate_wages
 	    #################
 		println("loading estimated parameters") 
 		coeff = readtable(string("tables/estimated_parameters.csv"))
-		z0 = coeff[:Value][1]
-	    sigma = coeff[:Value][2]
-	    pho = coeff[:Value][3]     
-	    lambda0 = coeff[:Value][4] 
-	    eta = coeff[:Value][5]
-	    mu = coeff[:Value][6]
-	    k = 0.12
-	    lambda1  = k*lambda0
-	    s = 0.42
-	    x_lower_bound = 0.73
-	    alpha = 0.64
-	    ##############################################""
 
+		"""
+		z0 = coeff[:Value][1]
+		sigma = coeff[:Value][2]
+		pho = coeff[:Value][3]     
+		lambda0 = coeff[:Value][4] 
+		eta = coeff[:Value][5]
+		mu = coeff[:Value][6]
+		x_lower_bound = parameters[7]
+		delta = coeff[:Value][8] #exogenous layoff rate
+
+		k = 0.12
+		lambda1  = k*lambda0
+		#x_lower_bound = 0.73
+		alpha = 0.64
+		tau = 0.5
+		#delta = 0.043 #exogenous layoff rate
+		r = 0.05/4 #quarterly interest rate
+		discount = (1 - delta)/(1 + r)
+		epsilon = 0.002
+		"""
+
+		"""
+		z0 = coeff[:Value][1];
+		sigma = coeff[:Value][2];
+		lambda0 = coeff[:Value][3];
+		eta =  coeff[:Value][4];
+		mu =  coeff[:Value][5];
+		x_lower_bound = coeff[:Value][6] #lower bound of the ability level
+		alpha = coeff[:Value][7]
+		delta = coeff[:Value][8]
+
+		pho = 0.94
+		k = 0.12;
+		lambda1  = k*lambda0;
+		#x_lower_bound = 0.73
+		#alpha = 0.64
+		tau = 0.5
+		#delta = 0.043 # exogenous layoff rate
+
+		r = 0.05/4 # interest rate
+		discount = (1 - delta)/(1 + r)
+		epsilon = 0.002
+		"""
+
+		z0 = coeff[:Value][1];
+	    sigma = coeff[:Value][2];
+	    lambda0 = coeff[:Value][3];
+	    eta =  coeff[:Value][4];
+	    mu =  coeff[:Value][5];
+	    x_lower_bound = coeff[:Value][6] #lower bound of the ability level
+
+	    pho = 0.94
+	    k = 0.12;
+	    lambda1  = k*lambda0;
+	    #x_lower_bound = 0.73
+	    alpha = 0.64
 	    tau = 0.5
-	    delta = 0.042 # "4.2# exogenous layoff rate"
-	    r = 0.05/4 # quarterly interest rate
+	    delta = 0.042 # exogenous layoff rate
+
+	    r = 0.05/4 # interest rate
 	    discount = (1 - delta)/(1 + r)
 	    epsilon = 0.002
+
 	    N = 100 #number of states
 		M = 500 #number of ability levels
 
@@ -169,7 +215,8 @@ module calculate_wages
 
 	    Si_m = zeros(N,M);
 
-	    tol = 0.0001;
+	    #tol = 0.0001;
+	    tol = 0.01;
 	    maxits = 300;
 	    dif = tol+tol;
 	    its = 1;

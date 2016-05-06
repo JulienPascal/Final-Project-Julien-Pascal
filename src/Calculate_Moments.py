@@ -24,6 +24,7 @@ import scipy
 from tabulate import tabulate
 import csv
 import statsmodels.formula.api as smm #OLS
+from arch import arch_model
 
 #locate in the correct directory:
 path = '/home/julien/master-s_thesis/data' #path to the data
@@ -781,6 +782,7 @@ plt.show()
 #b. Real productivity per hour:
 plt.subplot(2, 2, 1)
 plt.plot(dateList3, log_Real_compensation_hour, color="navy")
+plt.title("Log Real Compensation per hour")
 
 plt.subplot(2, 2, 2)
 plt.plot(dateList3, trend_Real_compensation_hour, color="r",)
@@ -1081,8 +1083,7 @@ with open(path_table + 'table_moments.csv', 'w') as csvfile:
 	writer = csv.writer(csvfile)
 	[writer.writerow(r) for r in table]
 
-##############################################################################
-# Variance covariance matrix of estimators used in Method of Simulated Moments:
-# i.e. [mean_prod; std_prod; mean_unemployment; std_unemployment; kurtosis_unemployment; mean_exit_rate]; 
-#moments_to_match = [cycle_Real_output, cycle_Real_output, cycle_Unemployment_rate, cycle_Unemployment_rate, cycle_Unemployment_rate, cycle_F_BLS]
-#np.cov(moments_to_match)
+##############################
+# ARCH Model for productivity
+#am = arch_model(exponentiated_cycle_Real_output)
+#res = am.fit()

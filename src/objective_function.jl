@@ -11,17 +11,16 @@
 
 ##########################################################################################
 # Objective function that is called by the function MSM in the file estimate_parameters.jl
-function objective_function(parameters::Vector, grad::Vector)
+# To be used by the package NLopt
+function objective_function(parameters::Vector, grad::Vector, Weighting_matrix::Matrix, random_numbers::Vector, b0::Vector)
 
 
     ##################
     # Function that returns the inverse of lognormal distribution
     function logninv(p,mu,sigma)
-
         #output: scalar x 
         logx0 = -sqrt(2)*erfcinv(2*p);
         x = exp(sigma*logx0 + mu);
-
         return x
     end
     #################
@@ -37,9 +36,7 @@ function objective_function(parameters::Vector, grad::Vector)
     ##########################
     # define opportunity cost of employment:
     function zi_m(y_index,x_index, ygrid, xgrid, z0, alpha) 
-
         op_cost = z0 + alpha*(yi_m(y_index,x_index, ygrid, xgrid) - z0) #call the function defined above
-
         return op_cost
     end
 
@@ -77,9 +74,8 @@ function objective_function(parameters::Vector, grad::Vector)
         return st
     end
 
-
-    function ut_plus1_f(St_m, ut_m, delta, lambda0, M)
     #Calculates the next period's unemployment rate
+    function ut_plus1_f(St_m, ut_m, delta, lambda0, M)
 
         #initialization:
         ut_plus1_m = zeros(1,M);
@@ -100,22 +96,57 @@ function objective_function(parameters::Vector, grad::Vector)
     ############
     # Parameters
     ############
-   
+    
     #parameters to estimate:
+    """
     z0 = parameters[1];
     sigma = parameters[2];
     pho = parameters[3];
     lambda0 = parameters[4];
     eta =  parameters[5];
     mu =  parameters[6];
+    x_lower_bound = parameters[7] #lower bound of the ability level
+    delta = parameters[8] #exogenous separation rate
+    """
 
+    """
+    z0 = parameters[1];
+    sigma = parameters[2];
+    lambda0 = parameters[3];
+    eta =  parameters[4];
+    mu =  parameters[5];
+    x_lower_bound = parameters[6] #lower bound of the ability level
+    alpha = parameters[7]
+    delta = parameters[8]
+
+    pho = 0.94
     k = 0.12;
     lambda1  = k*lambda0;
-    s = 0.42
-    x_lower_bound = 0.73
+    #x_lower_bound = 0.73
+    #alpha = 0.64
+    tau = 0.5
+    #delta = 0.042 # exogenous layoff rate
+
+    r = 0.05/4 # interest rate
+    discount = (1 - delta)/(1 + r)
+    epsilon = 0.002
+    """
+
+    z0 = parameters[1];
+    sigma = parameters[2];
+    lambda0 = parameters[3];
+    eta =  parameters[4];
+    mu =  parameters[5];
+    x_lower_bound = parameters[6] #lower bound of the ability level
+
+    pho = 0.94
+    k = 0.12;
+    lambda1  = k*lambda0;
+    #x_lower_bound = 0.73
     alpha = 0.64
     tau = 0.5
-    delta = 0.042 # "4.2# exogenous layoff rate"
+    delta = 0.042 # exogenous layoff rate
+
     r = 0.05/4 # interest rate
     discount = (1 - delta)/(1 + r)
     epsilon = 0.002
@@ -189,7 +220,7 @@ function objective_function(parameters::Vector, grad::Vector)
 
     for i=1:N
         for m=1:M
-            zi_m_grid[i,m] = zi_m(i,m, ygrid, xgrid, z0, alpha);
+           zi_m_grid[i,m] = zi_m(i,m, ygrid, xgrid, z0, alpha);
         end
     end
                                                     
@@ -217,7 +248,8 @@ function objective_function(parameters::Vector, grad::Vector)
 
         Si_m = zeros(N,M);
 
-        tol = 0.0001;
+        # tol = 0.0001
+        tol = 0.01; #increasing the tolerance to this one speed up the evaluation of the objective function by 10%
         maxits = 300;
         dif = tol+tol;
         its = 1;
@@ -230,9 +262,9 @@ function objective_function(parameters::Vector, grad::Vector)
 
         while dif>tol 
 
-            up_plus1 =  G + discount*Markov*max(up,compare)
+            @fastmath up_plus1 =  G + discount*Markov*max(up,compare)
         
-            dif = norm(up_plus1 - up);      
+            @fastmath dif = norm(up_plus1 - up);      
 
             up = up_plus1;
 
@@ -296,7 +328,8 @@ for t=1:(number_periods-1)
     ut_m_r[t+1,:] = ut_plus1_f(St_m_r[t,:]', ut_m_r[t,:]', delta, lambda0, M);
 
     # New shock from the markov transition matrix:
-    r = rand(); #draw a number from the uniform distribution on 0, 1
+    #r = rand(); #draw a number from the uniform distribution on 0, 1
+    r = random_numbers[t]
     
     # I use the Markov transition matrix previously defined:
     prob = Markov[y_index_r[t,1],:];
@@ -308,38 +341,91 @@ for t=1:(number_periods-1)
     y_r[t+1,1] = ygrid[y_index_r[t+1,1], 1];
 end
 
-#Take into account mean productivity,
 
-    #Check for odd values:
-    for i = discard:(number_periods-1)
-        if (isless(ut_r[i,1],0))
-            return Inf
-        end
-    end 
+#Check for odd values. These entities cannot be negative or zero:
+for i = discard:(number_periods-1)
+    if ut_r[i,1]<=0
+        return Inf #+infinity of type Float64
+    elseif ft_r[i,1]<=0
+        return Inf
+    elseif st_r[i,1]<=0
+        return Inf
+    end
+end 
 
-#Moments to match:
+# Calculate the moments from the simulation: 
 mean_prod = mean(y_r[discard:(number_periods-1),1]) # Production
 std_prod = std(log(y_r[discard:(number_periods-1),1]))
 
 mean_unemployment = mean(ut_r[discard:(number_periods-1),1]) #Unemployment
 std_unemployment = std(log(ut_r[discard:(number_periods-1),1]))
-kurtosis_unemployment = kurtosis(log(ut_r[discard:(number_periods-1),1])) + 3 #returns excess kurtosis, so I add 3
 
-mean_exit_rate = mean(ft_r[discard:(number_periods-1),1]) #exit rate from unemployment
+mean_exit_rate = mean(ft_r[discard:(number_periods-1),1]) #job finding rate ft
+std_exit_rate = std(log(ft_r[discard:(number_periods-1),1]))
 
-b1 = [mean_prod; std_prod; mean_unemployment; std_unemployment; kurtosis_unemployment; mean_exit_rate]; #simulated moments
-b0 = [ 1; 0.0226;  0.058;  0.22; 2.65; 0.78]; #moments to match
-
-Weighting_matrix = eye(6,6)
+mean_job_destruction_rate = mean(st_r[discard:(number_periods-1),1]) #job separation rate st
+std_job_destruction_rate = std(log(st_r[discard:(number_periods-1),1]))
 
 
-#db = (b1-b0)./b0;
-#distance = dot(db,db);
-db = (b1-b0) 
-distance = sum(transpose(db)*Weighting_matrix*db) #use the function "sum" because the output has to be a scalar, not a 1 times 1 matrix. 
-
-#calculate the 
-return distance
+#Check for odd values. Don't want an economy with constant values:
+if std_prod == 0
+    return Inf
+elseif std_unemployment == 0
+    return Inf
+elseif std_exit_rate == 0
+    return Inf
+elseif std_job_destruction_rate == 0
+    return Inf
 end
 
 
+#kurtosis_unemployment = kurtosis(log(ut_r[discard:(number_periods-1),1])) + 3 #returns excess kurtosis, so I add 3
+
+# Classic
+#b1 = [mean_prod; std_prod; mean_unemployment; std_unemployment; kurtosis_unemployment; mean_exit_rate]; #simulated moments
+#b0 = [ 1; 0.0226;  0.058;  0.22; 2.65; 0.78]; #moments to match from the original paper
+#b0 = [ 1; 0.023;  0.059;  0.218; 2.405; 0.762]; #moments to match
+
+# New one
+#b1 = [mean_prod; std_prod; mean_unemployment; std_unemployment; mean_exit_rate; std_exit_rate]; #simulated moments
+#b0 = [ 1; 0.023;  0.059;  0.218; 0.762; 0.085] #new one
+
+# New one 2:
+#b1 = [mean_prod; std_prod; mean_unemployment; std_unemployment; kurtosis_unemployment; mean_exit_rate; std_exit_rate] #simulated moments
+#b0 = [ 1.0; 0.023;  0.059;  0.210; 2.374; 0.761; 0.085]; #moments to match
+
+# New one 3: replace the kurtosis of unemployment rate by the std of the job destruction rate
+# !!! Have to adjust other function:
+#b1 = [mean_prod; std_prod; mean_unemployment; std_unemployment; mean_job_destruction_rate; std_job_destruction_rate ; mean_exit_rate; std_exit_rate] #simulated moments
+#b0 = [ 1.0; 0.023;  0.059;  0.210; 0.156; 0.761; 0.085]; #moments to match
+
+# mean productivity, std productivity, mean unemployment rate, std unemployment rate, mean job finding rate, std job finding rate, mean job separation rate, std separation rate
+#b1 = [mean_prod; std_prod; mean_unemployment; std_unemployment; mean_exit_rate; std_exit_rate; mean_job_destruction_rate; std_job_destruction_rate] #simulated moments
+
+b1 = [mean_prod; std_prod; mean_unemployment; std_unemployment; mean_exit_rate; std_exit_rate; mean_job_destruction_rate] #simulated moments
+#b0 = [1.0; 0.023;  0.059;  0.210; 0.761; 0.085; 0.046; 0.156]
+
+db = (b1-b0) 
+distance = sum(transpose(db)*Weighting_matrix*db) #use the function "sum" because the output has to be a scalar, not a 1 times 1 matrix. 
+
+return distance
+end
+
+"""
+using PyPlot, Distributions, StatsFuns, JLD, HDF5, DataFrames, Copulas, NLopt, BlackBoxOptim
+path_main = "/home/julien/Final-Project-Julien-Pascal"
+path_table = string(path_main,"/tables/")  #the path tables
+path_surpluses = string(path_main,"/surpluses/")#path to precalculated objects, to speed up the process
+file_random_numbers =  jldopen(string(path_surpluses,"random_numbers.jld"), "r")
+random_numbers = read(file_random_numbers, "random_numbers")
+Weighting_matrix = eye(8,8)
+#params_opt = [0.77, 0.023, 0.94, 0.99, 2.00, 5.56, 0.73, 0.046]
+
+#["z0", "sigma", "lambda0", "eta", "mu", "x_lower_bar", "alpha"]
+params_opt = [0.77, 0.023, 0.99, 2.00, 5.56, 0.73, 0.64]
+
+b0 = [1.0; 0.023;  0.059;  0.210; 0.761; 0.085; 0.046; 0.156]
+
+
+objective_function(params_opt,params_opt,Weighting_matrix,random_numbers,b0)
+"""

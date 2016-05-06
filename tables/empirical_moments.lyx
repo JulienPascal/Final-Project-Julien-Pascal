@@ -1,0 +1,245 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+\usepackage{graphicx}
+\usepackage{siunitx}
+\usepackage{placeins}
+\usepackage{fancyvrb}
+\usepackage{alltt}
+\clubpenalty=9996
+\widowpenalty=9999
+\brokenpenalty=4991
+\predisplaypenalty=10000
+\postdisplaypenalty=1549
+\displaywidowpenalty=1602
+\usepackage{floatpag}
+\floatpagestyle{plain} % Default page style for pages with only floats
+
+\newsavebox\IBox
+\let\IncludeGraphics\includegraphics
+\renewcommand\includegraphics[2][]{%
+  \sbox\IBox{\IncludeGraphics[#1]{#2}}%
+  \ifdim\wd\IBox>\linewidth\resizebox{\linewidth}{!}{\usebox\IBox}\else\usebox\IBox\fi}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+noindent
+\backslash
+resizebox{
+\backslash
+textwidth}{!}{%
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{tabular}{llrrrll}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+hline
+\end_layout
+
+\begin_layout Plain Layout
+
+                         & Productivity         &   Unemployment rate &
+   Exit rate from Un.
+ &   Job destruction rate & Vacancies            & Wage                
+ 
+\backslash
+
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+hline
+\end_layout
+
+\begin_layout Plain Layout
+
+ Mean                    &                      &               0.059 & 
+               0.761 &                  0.046 &                      &   
+                   
+\backslash
+
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+ Std                     & 0.022798869187171306 &               0.210 &  
+              0.085 &                  0.156 & 0.21344938435273364  & 0.018771923736
+931373 
+\backslash
+
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+ Skewness                & -0.08104054876290766 &               0.122 &  
+             -0.662 &                  0.061 & -0.28168755507882975 & -0.36050060517
+053345 
+\backslash
+
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+ Kurtosis                & 2.9180125917607396   &               2.374 &  
+              3.937 &                  2.751 & 2.051890958906162    & 2.663091466570
+7865   
+\backslash
+
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+ Autocorrelation         & 0.9212237978572017   &               0.956 &  
+              0.927 &                  0.911 & 0.9504754522558454   & 0.912276971980
+8149   
+\backslash
+
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+ Corr.
+ with production   & 1.0                  &              -0.369 &        
+        0.266 &                 -0.465 & 0.16563359169571712  & 0.4793448278297198
+   
+\backslash
+
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+ Corr.
+ with unemployment & -0.368899957843094   &               1.000 &        
+       -0.909 &                  0.929 & -0.8045268073050174  & -0.1471548489240914
+  
+\backslash
+
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+hline
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{tabular}
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
