@@ -91,7 +91,7 @@ Update 7, 26/04/2016:
 Update 8, 27/04/2016:
 - Add the possibility of estimating the parameters using a simulated annealing approach. A function coded by Michael Creel following  Goffe, William L. (1996) "SIMANN: A Global Optimization Algorithm using Simulated Annealing " Studies in Nonlinear Dynamics & Econometrics Oct96, Vol. 1 Issue 3 is used. 
 
-Update 9, 06/04/2016:
+Update 9, 06/05/2016:
 - Modification of the estimation procedure of the parameters: can choose between NLopt, Differential Evolution and Simulated Annealing; 1-step or 2-step approaches (optimal weighting matrix)
 - Add a module "Bargaining_power_test.jl" that looks at the links between relative bargaining power of groups and wage inequality
 - Need to slightly modify the code for the simulated annealing in the next update. Not functional in this version
