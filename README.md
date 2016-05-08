@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/JulianPasc/Final-Project-Julien-Pascal.svg?branch=master)](https://travis-ci.org/JulianPasc/Final-Project-Julien-Pascal)
+
 # Computational Economics
 ## Final-Project-Julien-Pascal
 
@@ -53,6 +55,9 @@ Julia Version 0.5.0-dev+3438, Commit a92c7ff, x86_64-linux-gnu. Until now, the c
 The part that estimates the empirical moments is a Python script. The following version was used: Python 3.5.1 |Anaconda 2.4.1 (64-bit)| (default, Dec  7 2015, 11:16:01) 
 [GCC 4.4.7 20120313 (Red Hat 4.4.7-1)] on linux
 
+## Before running the code
+Paths are set up for my environment. You may want to adapt "path_main", which is the path in which the file "main.jl" is located. Change "path_main" in the following files: main.jl, calculate_moments.py, estimate_parameters.jl, test.jl, simulate_economy.jl, Bargaining_power_test.jl
+
 ## Updates:
 Update 0:
 - Code in Matlab
@@ -96,3 +101,5 @@ Update 9, 06/05/2016:
 - Add a module "Bargaining_power_test.jl" that looks at the links between relative bargaining power of groups and wage inequality
 - Need to slightly modify the code for the simulated annealing in the next update. Not functional in this version
 
+Update 10, 06/05/2016:
+- Add some rudimentary tests
