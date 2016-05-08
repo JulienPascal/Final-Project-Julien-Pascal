@@ -1,0 +1,10 @@
+Julia Version 0.5.0-dev+3438
+PyPlot 
+Distributions
+StatsFuns
+JLD
+HDF5
+DataFrames
+Copulas
+NLopt
+BlackBoxOptim

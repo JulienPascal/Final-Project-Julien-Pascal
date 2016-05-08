@@ -19,7 +19,9 @@ module Bargaining_power_test
 
 	export Test_bargaining_power
 
-	#change path_main if necessary:
+	#################################
+	# PATHS
+	# change "path_main" if necessary
 	path_main = "/home/julien/Final-Project-Julien-Pascal"
 
 	path_table = string(path_main,"/tables/")  #the path tables

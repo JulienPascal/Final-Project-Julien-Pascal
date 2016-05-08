@@ -1,13 +1,18 @@
 ################
 # Julien  Pascal
+################
 
-# Move to my folder: 
+#################################
+# PATHS
+# change "path_main" if necessary
 home = ENV["HOME"]
 path_main = "/home/julien/Final-Project-Julien-Pascal"
 cd(path_main)	
 
-# Check for the existence of crucial files:
+# Tests:
+include("test/runtests.jl")
 
+# Check for the existence of crucial files:
 # A. Check that the empirical moments have been calculated
 # Otherwise has to launch the python code "Calculate_Moments.py"
 if isfile("tables/table_moments.csv") == false

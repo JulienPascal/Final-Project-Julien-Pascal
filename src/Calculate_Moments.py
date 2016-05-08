@@ -26,10 +26,12 @@ import csv
 import statsmodels.formula.api as smm #OLS
 from arch import arch_model
 
-#locate in the correct directory:
-path = '/home/julien/master-s_thesis/data' #path to the data
-path_figure = '/home/julien/master-s_thesis/figures/' #where to save the figures
-path_table = '/home/julien/master-s_thesis/tables/' #where to save the tables
+#################################
+# PATHS
+# change "path_main" if necessary
+path = '/home/julien/Final-Project-Julien-Pascal/data' #path to the data
+path_figure = '/home/julien/Final-Project-Julien-Pascal/figures/' #where to save the figures
+path_table = '/home/julien/Final-Project-Julien-Pascal/tables/' #where to save the tables
 os.chdir(path) #locate in the folder with the data
 
 

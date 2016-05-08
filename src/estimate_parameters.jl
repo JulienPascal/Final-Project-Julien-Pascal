@@ -10,9 +10,12 @@
 ####################################################################################
 
 #######################################################################################
-# Model that estimates the parameters of the model by the method of simulated moments
+# Module that estimates the parameters of the model by the method of simulated moments
 module estimate_parameters
 
+	#################################
+	# PATHS
+	# change "path_main" if necessary
 	path_main = "/home/julien/Final-Project-Julien-Pascal"
 	path_table = string(path_main,"/tables/")  #the path tables
 	path_surpluses = string(path_main,"/surpluses/")#path to precalculated objects, to speed up the process

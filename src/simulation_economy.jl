@@ -19,7 +19,9 @@ module simulation_economy
 
 	export Simulate_Economy
 
-	#change path_main if necessary:
+	#################################
+	# PATHS
+	# change "path_main" if necessary
 	path_main = "/home/julien/Final-Project-Julien-Pascal"
 
 	path_table = string(path_main,"/tables/")  #the path tables
@@ -891,7 +893,7 @@ module simulation_economy
         savefig("figures/Surplus_function.png")
         """
 
-        fig = figure("pyplot_surfaceplot",figsize=(10,10))
+        fig = figure("Surplus1",figsize=(10,10))
         ax = fig[:add_subplot](1,1,1) 
         cp = ax[:contour](xgrid_plot, ygrid_plot, Si_m, linewidth=2.0) 
         ax[:clabel](cp, inline=1, fontsize=10) 
@@ -899,7 +901,15 @@ module simulation_economy
         ylabel("productivity y")
         title("Contour Plot")
         tight_layout()
-        savefig("figures/Surplus_function.png")
+        savefig("figures/Surplus_function_1.png")
+
+        fig = figure("Surplus2",figsize=(10,10))
+        ax = fig[:add_subplot](1,1,1, projection = "3d") 
+        ax[:plot_surface](xgrid_plot, ygrid_plot, Si_m, rstride=2, edgecolors="k", cstride=2, cmap=ColorMap("gray"), alpha=0.8, linewidth=0.25) 
+        xlabel("X") 
+        ylabel("Y")
+        title("Surface Plot")
+         savefig("figures/Surplus_function_2.png")
 
 		# Plot productivity match:
 		figure("1",figsize=(10,10))
@@ -908,7 +918,7 @@ module simulation_economy
 		end
 		xlabel("Aggregate State") 
 		ylabel("Productivity")
-		title("Match Productivity by Ability")
+		#title("Match Productivity by Ability")
 		savefig("figures/Simulation_Match_Productivity_by_Ability.png")
 
 		figure("2",figsize=(10,10))
@@ -946,7 +956,7 @@ module simulation_economy
 
 		#plot the average wage
 		figure("6",figsize=(10,10))
-		plot(time_plot[:], wi_r[discard:(number_periods-1),1]);
+		plot(time_plot[:], wi_r[discard:(number_periods-1),1]);	
 		title("Mean Wage")
 		xlabel("Periods")
 		ylabel("wage")
@@ -976,7 +986,9 @@ module simulation_economy
 		legend(loc="best",fancybox="true")
 		savefig("figures/Simulation_Productivity_and_Unemployment_Rate.png")
 		
-		"""
+		""" 
+		# This part is quite slow (about 10 minutes) 
+		# Uncomment to get the dynamics of wage deciles
 		#########################
 		#Dynamics of wage decile:
 		#########################
@@ -991,6 +1003,7 @@ module simulation_economy
 		D9_D5 = zeros(number_periods,1);
 
 		for t = (number_periods-trim):(number_periods-1)
+		println(t)
 
 		    per = 0; #intialization
 
@@ -1146,6 +1159,7 @@ module simulation_economy
 
 		return Dict("Moments" => df, "Wages_deciles"=> wages_df)
 		"""
+		
 	end
 
 	#Function that simulates the economy based on 
