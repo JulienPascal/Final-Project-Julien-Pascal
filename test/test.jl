@@ -56,6 +56,25 @@ context("Test the objective functions") do
 	end
 end
 
+# Look if the estimated parameters perform well compared the original ones:
+context("Test estimated parameters vs origianl paper's parameters") do 
+
+	facts("estimated parameters vs original paper's parameters") do
+
+	parameters_original = [0.77, 0.023, 0.99, 2.00, 5.56, 0.73]
+
+	result_original = objective_function(parameters_original ,parameters_original , Weighting_matrix, random_numbers, b0)
+
+	result_estimated = objective_function_2(parameters, Weighting_matrix, random_numbers, b0)
+
+	difference = result_estimated - result_original 
+
+		# if difference is negative, then the estimated parameters are better wrt to the criteria used:
+		@fact difference --> less_than_or_equal(0)
+
+	end
+end
+
 # 2. With the estimated coefficient, make sure the system behave properly
 # e.g. the unemployment rate cannot be negative
 
